@@ -65,6 +65,16 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api', apiRoutes);
 
+// Health check endpoint for Vercel
+app.get('/api/health', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Vedic Vision API is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 // Root endpoint
 app.get('/', (req, res) => {
     res.json({
@@ -166,6 +176,14 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
+// Start the server for local development
+if (!process.env.VERCEL) {
+    startServer();
+}
+
+// Export for Vercel serverless
+export default app;
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
