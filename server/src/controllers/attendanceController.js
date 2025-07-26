@@ -4,7 +4,7 @@ import User from '../models/User.js';
 // Mark attendance (Participants)
 export const markAttendance = async (req, res) => {
   try {
-    const { date, session, status = 'present', remarks } = req.body;
+    const { date, session = 'full-day', status = 'present', remarks } = req.body;
 
     // Check if attendance already exists for this date and session
     const existingAttendance = await Attendance.findOne({
@@ -408,20 +408,23 @@ export const getTodayAttendance = async (req, res) => {
 // Check if user can mark attendance (Participants)
 export const canMarkAttendance = async (req, res) => {
   try {
+    console.log('canMarkAttendance called. User:', req.user._id, 'Query:', req.query, 'Params:', req.params, 'Body:', req.body);
+    
     const { date, session } = req.query;
 
-    if (!date || !session) {
-      return res.status(400).json({
-        success: false,
-        message: 'Date and session are required'
-      });
-    }
+    // Use today's date and default session if not provided
+    const checkDate = date || new Date().toISOString().split('T')[0];
+    const checkSession = session || 'full-day';
+
+    console.log('Checking attendance for date:', checkDate, 'session:', checkSession);
 
     const existingAttendance = await Attendance.findOne({
       userId: req.user._id,
-      date: new Date(date),
-      session
+      date: new Date(checkDate),
+      session: checkSession
     });
+
+    console.log('Existing attendance found:', existingAttendance);
 
     res.json({
       success: true,
@@ -432,6 +435,7 @@ export const canMarkAttendance = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Error in canMarkAttendance:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to check attendance status',

@@ -4,6 +4,11 @@ import { body, param, query, validationResult } from 'express-validator';
 export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation error:', errors.array());
+    console.log('Request body:', req.body);
+    console.log('Request file:', req.file);
+    console.log('Request query:', req.query);
+    console.log('Request params:', req.params);
     return res.status(400).json({
       success: false,
       message: 'Validation errors',
@@ -25,9 +30,7 @@ export const validateRegister = [
     .withMessage('Please provide a valid email'),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
+    .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
     .isIn(['participant', 'admin'])
@@ -52,22 +55,14 @@ export const validateCreateTask = [
     .withMessage('Title must be between 3 and 100 characters'),
   body('description')
     .trim()
-    .isLength({ min: 10 })
-    .withMessage('Description must be at least 10 characters long'),
-  body('type')
-    .isIn(['assignment', 'project', 'quiz', 'presentation'])
-    .withMessage('Invalid task type'),
+    .isLength({ min: 5 })
+    .withMessage('Description must be at least 5 characters long'),
   body('maxScore')
     .isInt({ min: 1, max: 1000 })
     .withMessage('Max score must be between 1 and 1000'),
   body('deadline')
     .isISO8601()
-    .custom((value) => {
-      if (new Date(value) <= new Date()) {
-        throw new Error('Deadline must be in the future');
-      }
-      return true;
-    })
+    .withMessage('Please provide a valid deadline date')
 ];
 
 // Submission validation rules
@@ -76,22 +71,23 @@ export const validateSubmission = [
     .isMongoId()
     .withMessage('Invalid task ID'),
   body('submissionType')
-    .isIn(['file', 'link', 'text'])
+    .isIn(['text', 'link'])
     .withMessage('Invalid submission type'),
-  body('content.text')
-    .if(body('submissionType').equals('text'))
+  body('content')
     .notEmpty()
-    .withMessage('Text content is required for text submissions'),
-  body('content.link')
-    .if(body('submissionType').equals('link'))
-    .isURL()
-    .withMessage('Valid URL is required for link submissions'),
-  body('content.linkTitle')
-    .if(body('submissionType').equals('link'))
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Link title must not exceed 100 characters')
+    .withMessage('Content is required')
+    .custom((value) => {
+      // Content can be a JSON string or an object
+      if (typeof value === 'string') {
+        try {
+          JSON.parse(value);
+          return true;
+        } catch (error) {
+          throw new Error('Content must be valid JSON');
+        }
+      }
+      return true;
+    })
 ];
 
 // Attendance validation rules
@@ -99,9 +95,6 @@ export const validateAttendance = [
   body('date')
     .isISO8601()
     .withMessage('Invalid date format'),
-  body('session')
-    .isIn(['morning', 'afternoon', 'evening', 'full-day'])
-    .withMessage('Invalid session type'),
   body('status')
     .optional()
     .isIn(['present', 'absent', 'late'])
@@ -112,12 +105,12 @@ export const validateAttendance = [
 export const validateAnnouncement = [
   body('title')
     .trim()
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Title must be between 3 and 100 characters'),
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Title must be between 1 and 200 characters'),
   body('content')
     .trim()
-    .isLength({ min: 10 })
-    .withMessage('Content must be at least 10 characters long'),
+    .isLength({ min: 1 })
+    .withMessage('Content must not be empty'),
   body('priority')
     .optional()
     .isIn(['low', 'medium', 'high', 'urgent'])
@@ -130,7 +123,7 @@ export const validateAnnouncement = [
     .optional()
     .isISO8601()
     .custom((value) => {
-      if (new Date(value) <= new Date()) {
+      if (value && new Date(value) <= new Date()) {
         throw new Error('Expiry date must be in the future');
       }
       return true;

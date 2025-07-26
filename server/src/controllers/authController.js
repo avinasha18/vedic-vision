@@ -12,7 +12,7 @@ const generateToken = (userId) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, role = 'participant' } = req.body;
-
+    console.log(req.body);
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -51,6 +51,43 @@ export const register = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Registration failed',
+      error: error.message
+    });
+  }
+};
+
+// Register new admin
+export const registerAdmin = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Only superadmin can access (middleware will enforce)
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User already exists with this email' });
+    }
+
+    const user = new User({
+      name,
+      email,
+      password,
+      role: 'admin'
+    });
+
+    await user.save();
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin registered successfully',
+      data: { user: userResponse }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Admin registration failed',
       error: error.message
     });
   }

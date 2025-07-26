@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vedic-vision');
+    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://avinasha:avinasha999@avinasha.glwrnby.mongodb.net/vedic-vision?retryWrites=true&w=majority&appName=Avinasha');
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     

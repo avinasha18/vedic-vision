@@ -6,9 +6,10 @@ import {
   updateProfile,
   changePassword,
   refreshToken,
-  logout
+  logout,
+  registerAdmin
 } from '../controllers/authController.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, superadminOnly } from '../middleware/auth.js';
 import {
   validateRegister,
   validateLogin,
@@ -20,6 +21,7 @@ const router = express.Router();
 // Public routes
 router.post('/register', validateRegister, handleValidationErrors, register);
 router.post('/login', validateLogin, handleValidationErrors, login);
+router.post('/register-admin', authenticateToken, superadminOnly, registerAdmin);
 
 // Protected routes
 router.use(authenticateToken); // Apply authentication to all routes below

@@ -70,10 +70,17 @@ export const authorizeRoles = (...roles) => {
 };
 
 // Admin only middleware
-export const adminOnly = authorizeRoles('admin');
+export const adminOnly = authorizeRoles('admin','superadmin');
 
 // Participant only middleware  
 export const participantOnly = authorizeRoles('participant');
 
 // Admin or Participant middleware
-export const authenticatedUsers = authorizeRoles('admin', 'participant'); 
+export const authenticatedUsers = authorizeRoles('admin', 'participant','superadmin'); 
+
+export const superadminOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'superadmin') {
+    return next();
+  }
+  return res.status(403).json({ success: false, message: 'Superadmin access required' });
+}; 

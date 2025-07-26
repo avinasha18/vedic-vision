@@ -7,6 +7,19 @@ import path from 'path';
 export const submitTask = async (req, res) => {
   try {
     const { taskId, submissionType, content } = req.body;
+    
+    // Parse content if it's a JSON string
+    let parsedContent = content;
+    if (typeof content === 'string') {
+      try {
+        parsedContent = JSON.parse(content);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid content format'
+        });
+      }
+    }
 
     // Verify task exists and is active
     const task = await Task.findById(taskId);
@@ -54,12 +67,12 @@ export const submitTask = async (req, res) => {
       };
     } else if (submissionType === 'link') {
       submissionData.content = {
-        link: content.link,
-        linkTitle: content.linkTitle || ''
+        link: parsedContent.link,
+        linkTitle: parsedContent.linkTitle || ''
       };
     } else if (submissionType === 'text') {
       submissionData.content = {
-        text: content.text
+        text: parsedContent.text
       };
     } else {
       return res.status(400).json({
