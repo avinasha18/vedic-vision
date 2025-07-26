@@ -19,8 +19,13 @@ const __dirname = path.dirname(__filename);
 // Initialize Express app
 const app = express();
 
-// Create required directories
+// Create required directories (only for local development)
 const createDirectories = () => {
+    // Skip directory creation on Vercel
+    if (process.env.VERCEL) {
+        return;
+    }
+
     const directories = [
         'uploads',
         'uploads/submissions',
@@ -51,8 +56,10 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files for uploads
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// Serve static files for uploads (only for local development)
+if (!process.env.VERCEL) {
+    app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+}
 
 // Request logging middleware
 app.use((req, res, next) => {
