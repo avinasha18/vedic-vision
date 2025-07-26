@@ -185,9 +185,9 @@ const startServer = async () => {
 };
 
 // Start the server for local development
-if (!process.env.VERCEL) {
-    startServer();
-}
+// if (!process.env.VERCEL) {
+//     startServer();
+// }
 
 // Export for Vercel serverless
 export default app;

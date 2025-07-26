@@ -101,6 +101,27 @@ export const validateAttendance = [
     .withMessage('Invalid attendance status')
 ];
 
+// Admin attendance marking validation rules
+export const validateAdminAttendance = [
+  body('date')
+    .isISO8601()
+    .withMessage('Invalid date format'),
+  body('session')
+    .optional()
+    .isString()
+    .withMessage('Session must be a string'),
+  body('attendees')
+    .isArray({ min: 1 })
+    .withMessage('Attendees must be a non-empty array'),
+  body('attendees.*.userId')
+    .isMongoId()
+    .withMessage('Invalid user ID in attendees'),
+  body('attendees.*.status')
+    .optional()
+    .isIn(['present', 'absent', 'late'])
+    .withMessage('Invalid attendance status')
+];
+
 // Announcement validation rules
 export const validateAnnouncement = [
   body('title')

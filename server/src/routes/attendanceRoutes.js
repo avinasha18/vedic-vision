@@ -7,11 +7,13 @@ import {
   deleteAttendance,
   getAttendanceStats,
   getTodayAttendance,
-  canMarkAttendance
+  canMarkAttendance,
+  markAttendanceForUsers
 } from '../controllers/attendanceController.js';
 import { authenticateToken, adminOnly, participantOnly } from '../middleware/auth.js';
 import {
   validateAttendance,
+  validateAdminAttendance,
   validateMongoId,
   validatePagination,
   handleValidationErrors
@@ -29,6 +31,7 @@ router.get('/today', adminOnly, getTodayAttendance);
 router.get('/stats', adminOnly, getAttendanceStats);
 router.get('/', adminOnly, validatePagination, handleValidationErrors, getAllAttendance);
 router.post('/', participantOnly, validateAttendance, handleValidationErrors, markAttendance);
+router.post('/mark-for-users', adminOnly, validateAdminAttendance, handleValidationErrors, markAttendanceForUsers);
 
 // Routes with parameters
 router.put('/:id', adminOnly, validateMongoId('id'), handleValidationErrors, updateAttendance);

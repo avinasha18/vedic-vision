@@ -63,6 +63,7 @@ export const taskAPI = {
 // Attendance API
 export const attendanceAPI = {
   markAttendance: (data) => api.post('/attendance', data),
+  markAttendanceForUsers: (data) => api.post('/attendance/mark-for-users', data),
   getMyAttendance: (params) => api.get('/attendance/my-attendance', { params }),
   canMarkAttendance: () => api.get('/attendance/can-mark'),
   getAllAttendance: (params) => api.get('/attendance', { params }),

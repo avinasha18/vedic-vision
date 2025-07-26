@@ -25,6 +25,11 @@ const attendanceSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  markedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Optional for self-marked attendance
+  },
   remarks: {
     type: String,
     trim: true

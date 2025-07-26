@@ -25,7 +25,8 @@ export const markAttendance = async (req, res) => {
       date: new Date(date),
       session,
       status,
-      remarks
+      remarks,
+      markedBy: req.user._id // Self-marked attendance
     });
 
     await attendance.save();
@@ -40,6 +41,81 @@ export const markAttendance = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to mark attendance',
+      error: error.message
+    });
+  }
+};
+
+// Mark attendance for multiple users (Admin only)
+export const markAttendanceForUsers = async (req, res) => {
+  try {
+    const { date, session = 'full-day', attendees } = req.body;
+
+    if (!date || !attendees || !Array.isArray(attendees) || attendees.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Date and attendees array are required'
+      });
+    }
+
+    const attendanceDate = new Date(date);
+    const results = [];
+    const errors = [];
+
+    // Process each attendee
+    for (const attendee of attendees) {
+      try {
+        const { userId, status = 'present', remarks } = attendee;
+
+        // Check if attendance already exists for this user, date, and session
+        const existingAttendance = await Attendance.findOne({
+          userId,
+          date: attendanceDate,
+          session
+        });
+
+        if (existingAttendance) {
+          errors.push({
+            userId,
+            error: 'Attendance already marked for this session'
+          });
+          continue;
+        }
+
+        // Create new attendance record
+        const attendance = new Attendance({
+          userId,
+          date: attendanceDate,
+          session,
+          status,
+          remarks,
+          markedBy: req.user._id // Track who marked the attendance
+        });
+
+        await attendance.save();
+        await attendance.populate('userId', 'name email');
+
+        results.push(attendance);
+      } catch (error) {
+        errors.push({
+          userId: attendee.userId,
+          error: error.message
+        });
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Attendance marked for ${results.length} users`,
+      data: {
+        successful: results,
+        errors: errors
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark attendance for users',
       error: error.message
     });
   }

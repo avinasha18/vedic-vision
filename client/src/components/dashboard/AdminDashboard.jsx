@@ -194,7 +194,7 @@ const AdminDashboard = () => {
       case 'tasks':
         return <TasksTab tasks={tasks} onCreateTask={handleCreateTask} onToggleTaskStatus={handleToggleTaskStatus} />;
       case 'attendance':
-        return <AttendanceTab attendance={attendance} />;
+        return <AttendanceTab attendance={attendance} onMarkAttendance={loadDashboardData} />;
       case 'submissions':
         return <SubmissionsTab submissions={submissions} onGradeSubmission={handleGradeSubmission} />;
       case 'announcements':
